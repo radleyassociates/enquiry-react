@@ -1,0 +1,48 @@
+# Node dependencies
+node_modules/
+
+# Production build
+dist/
+build/
+
+# Local env files
+.env
+.env.*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript cache
+.turbo/
+.cache/
+
+# Optional npm cache
+package-lock.json
+
+# Vite
+.vite/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Misc
+.serverless/
+.parcel-cache/

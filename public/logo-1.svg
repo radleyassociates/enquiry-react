@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="36" viewBox="0 0 160 36" fill="none">
+  <rect width="160" height="36" rx="6" fill="#0ea5a9" />
+  <text x="14" y="22" font-family="Segoe UI, Roboto, sans-serif" font-size="14" fill="white">PROMS</text>
+  <circle cx="136" cy="18" r="8" fill="#083344" />
+</svg>
