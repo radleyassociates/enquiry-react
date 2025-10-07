@@ -6,7 +6,7 @@ import { LogIn } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export const LoginPage: React.FC = () => {
-  const [username, setUsername] = useState('Prakashbhai');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
