@@ -5,11 +5,6 @@
 html,
 body,
 #root {
+  max-height: 100vh;
   height: 100%;
-}
-
-/* small helper */
-.container {
-  max-width: 1100px;
-  margin: 0 auto;
 }
