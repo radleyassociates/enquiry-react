@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ApiResponse } from '../types/asset';
+import { ApiResponse, Asset, AssetResult } from '../types/asset';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const BEARER_TOKEN = import.meta.env.VITE_API_BEARER_TOKEN;
@@ -13,11 +13,22 @@ const apiClient = axios.create({
   }
 });
 
-export const getRecentDeals = async (username: string): Promise<ApiResponse> => {
+export const validateToken = async (username: string): Promise<ApiResponse<string>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<string>>(`/validatetoken`);
+    console.log("response", response)
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching recent deals:", error);
+    throw error;
+  }
+};
+
+export const getRecentDeals = async (username: string): Promise<ApiResponse<Asset[]>> => {
   const customer = "Investor Demo";
 
   try {
-    const response = await apiClient.get<ApiResponse>(`/getrecentdeals/${username}/${customer}`);
+    const response = await apiClient.get<ApiResponse<Asset[]>>(`/getrecentdeals/${username}/${customer}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching recent deals:", error);
@@ -43,5 +54,26 @@ export const geocodeAddress = async (address: string): Promise<{ lat: number; ln
   } catch (error) {
     console.error("Error geocoding address:", error);
     return null;
+  }
+};
+
+export const fetchAndMapAssetData = async (enquiryId: string): Promise<AssetResult> => {
+  if (!enquiryId) {
+    throw new Error("Enquiry ID must be provided.");
+  }
+
+  const url = `${API_BASE_URL}/getapienquiry?enquiryId=${enquiryId}`;
+
+  try {
+    const response = await apiClient.get<ApiResponse<AssetResult>>(url);
+
+    if (response.data.status !== 200) {
+      throw new Error(`API returned non-200 status: ${response.data.status}`);
+    }
+
+    return response.data.result;
+  } catch (err) {
+    console.error("API Fetch Error:", err);
+    throw new Error("Failed to load asset data from API.");
   }
 };

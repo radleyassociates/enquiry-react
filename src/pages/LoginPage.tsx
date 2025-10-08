@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getRecentDeals } from '../services/api';
-import { Asset } from '../types/asset';
 import { LogIn } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { validateToken } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 export const LoginPage: React.FC = () => {
-  const [username, setUsername] = useState('Prakashbhai');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -18,17 +18,13 @@ export const LoginPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getRecentDeals(username);
-      if (data && data.result && data.result.length > 0) {
-        const assetsWithCoords: Asset[] = data.result.map((asset, index) => ({
-          ...asset,
-        }));
-
+      const data = await validateToken(username);
+      if (data && data.result === "Token Valid") {
         login({ name: username, username });
 
-        navigate('/asset-analysis', { state: { assets: assetsWithCoords } });
+        navigate('/asset-analysis');
       } else {
-        setError('No assets found for this user.');
+        setError('Invalid login. Please check the username and try again.');
       }
     } catch (err) {
       setError('Invalid login. Please check the username and try again.');
@@ -39,7 +35,6 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="flex w-full min-h-screen font-sans">
-
       <div className="flex items-center justify-center w-full lg:w-1/2">
         <div className="w-full max-w-md p-8 space-y-8">
           <div className="text-center lg:text-left">
@@ -117,7 +112,6 @@ export const LoginPage: React.FC = () => {
           </p>
         </div>
       </div>
-
     </div>
   );
 };

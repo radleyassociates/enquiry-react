@@ -1,8 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { LoginPage } from "./pages/LoginPage";
-import { AssetAnalysisPage } from "./pages/AssetAnalysisPage";
+
 import Header from "./shared/Header";
 import { useAuth } from "./contexts/AuthContext";
+import { LoginPage } from "./pages/LoginPage";
+import { AssetsSummary } from "./pages/AssetsSummary";
+import { AssetEnquiryView } from "./pages/AssetDetailPage";
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -17,14 +19,21 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route
-          path="/asset-analysis"
+          path="/assets"
           element={
             <ProtectedRoute>
-              <AssetAnalysisPage />
+              <AssetsSummary />
             </ProtectedRoute>
           }
         />
-        <Route path="/" element={<Navigate to={isAuthenticated ? "/asset-analysis" : "/login"} />} />
+        <Route path="/asset-analysis/:enquiryId"
+          element={
+            <ProtectedRoute>
+              <AssetEnquiryView />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/" element={<Navigate to={isAuthenticated ? "/assets" : "/login"} />} />
       </Routes>
     </Router>
   );
