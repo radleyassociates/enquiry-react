@@ -18,9 +18,6 @@ yarn-error.log*
 .turbo/
 .cache/
 
-# Optional npm cache
-package-lock.json
-
 # Vite
 .vite/
 
