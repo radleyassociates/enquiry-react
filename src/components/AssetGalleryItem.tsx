@@ -6,8 +6,7 @@ import { geocodeAddress } from "../services/api";
 
 interface AssetGalleryItemProps {
   asset: Asset;
-  isSelected: boolean;
-  onClick: () => void;
+  onClick: (asset: Asset) => void;
   imageMode: "street" | "map";
 }
 
@@ -15,7 +14,6 @@ const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 export const AssetGalleryItem: React.FC<AssetGalleryItemProps> = ({
   asset,
-  isSelected,
   imageMode,
   onClick,
 }) => {
@@ -63,16 +61,14 @@ export const AssetGalleryItem: React.FC<AssetGalleryItemProps> = ({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={() => onClick(asset)}
       className={[
-        "flex flex-col w-full text-left overflow-hidden rounded-2xl border bg-white",
+        "flex flex-col h-full w-full text-left overflow-hidden rounded-2xl border bg-white",
         "shadow-sm hover:shadow-md transition-shadow",
-        isSelected ? "ring-2 ring-blue-500 shadow-lg" : "ring-1 ring-slate-200",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
       ].join(" ")}
-      aria-pressed={isSelected}
     >
-      <div className="relative">
+      <div className="relative flex-shrink-0 h-40">
         {!imgLoaded && !imgErrored && (
           <div className="h-40 w-full bg-slate-200 animate-pulse" />
         )}
@@ -108,29 +104,33 @@ export const AssetGalleryItem: React.FC<AssetGalleryItemProps> = ({
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-4 flex flex-col flex-1">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-slate-900 font-semibold leading-tight">
+          <h3 className="text-sm font-semibold leading-tight min-h-[1.9rem]">
             {asset.obligorRef}
           </h3>
         </div>
 
         <div className="mt-1 flex items-start gap-1.5 text-slate-600">
-          <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <p className="text-sm leading-snug line-clamp-2">{asset.address}</p>
+          <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <p className="text-xs leading-snug line-clamp-2">{asset.address}</p>
         </div>
+
+        <div className="flex-1" />
 
         <div className="my-3 h-px w-full bg-slate-200" />
 
-        <dl className="grid grid-cols-2 gap-y-2 text-sm">
-          <dt className="text-slate-500">Sector:</dt>
-          <dd className="text-right font-medium text-slate-800">{asset.sector}</dd>
+        <div className="mt-2 grid gap-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-500">Sector:</span>
+            <span className="font-medium text-slate-800">{asset.sector ?? "-"}</span>
+          </div>
 
-          <dt className="text-slate-500">Valuation:</dt>
-          <dd className="text-right text-lg font-bold text-slate-900">
-            {formattedValuation}
-          </dd>
-        </dl>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-500">Valuation:</span>
+            <span className="text-sm font-bold text-slate-900">{formattedValuation}</span>
+          </div>
+        </div>
       </div>
     </button>
   );
