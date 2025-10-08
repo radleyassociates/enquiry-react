@@ -22,7 +22,7 @@ export const LoginPage: React.FC = () => {
       if (data && data.result === "Token Valid") {
         login({ name: username, username });
 
-        navigate('/asset-analysis');
+        navigate('/assets');
       } else {
         setError('Invalid login. Please check the username and try again.');
       }
