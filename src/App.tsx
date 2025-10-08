@@ -1,10 +1,11 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import Header from "./shared/Header";
 import { useAuth } from "./contexts/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
 import { AssetsSummary } from "./pages/AssetsSummary";
 import { AssetEnquiryView } from "./pages/AssetDetailPage";
+import logo from './assets/logo-2.svg';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -15,7 +16,7 @@ function App() {
 
   return (
     <Router>
-      {isAuthenticated && <Header logo="/logo-2.svg" />}
+      {isAuthenticated && <Header logo={logo} />}
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route

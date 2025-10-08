@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { LayoutGrid, List, Camera, MapPin, Search, Plus } from 'lucide-react';
 
 import { Asset } from '../types/asset';
+import loadingGif from '../assets/loading4b.gif';
 import { getRecentDeals } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useAssets } from "../contexts/AssetsContext";
@@ -120,7 +121,7 @@ export const AssetsSummary: React.FC = () => {
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="text-center">
-              <img src="/loading4b.gif" alt="Loading..." className="mt-20 mx-auto" />
+              <img src={loadingGif} alt="Loading..." className="mt-20 mx-auto" />
             </div>
           ) : displayMode === 'gallery' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">

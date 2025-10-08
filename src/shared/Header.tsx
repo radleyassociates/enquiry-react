@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import secondLogo from '../assets/logo-2.svg';
 
 type HeaderProps = {
   logo?: string;
   version?: string;
 };
 
-export const Header: React.FC<HeaderProps> = ({ logo = "/logo-2.svg", version }) => {
+export const Header: React.FC<HeaderProps> = ({ logo = secondLogo, version }) => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
 

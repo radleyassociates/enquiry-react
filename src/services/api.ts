@@ -16,7 +16,6 @@ const apiClient = axios.create({
 export const validateToken = async (username: string): Promise<ApiResponse<string>> => {
   try {
     const response = await apiClient.get<ApiResponse<string>>(`/validatetoken`);
-    console.log("response", response)
     return response.data;
   } catch (error) {
     console.error("Error fetching recent deals:", error);

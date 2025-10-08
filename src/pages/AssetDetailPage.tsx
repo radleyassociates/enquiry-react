@@ -1,14 +1,14 @@
+import { SaveIcon, Undo2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { formatNumber } from '../utils/number';
+import loadingGif from '../assets/loading4b.gif';
 import { Asset, AssetResult } from '../types/asset';
 import { useAssets } from '../contexts/AssetsContext';
 import { fetchAndMapAssetData } from '../services/api';
 import { InputSlider } from '../components/InputSlider';
 import { AccordionSection } from '../components/AccordionSection';
-import { Outdent, OutdentIcon, SaveIcon, Undo2 } from 'lucide-react';
-
 const tabs = [
   'Initial Valuation', 'Value Sensitivity', 'Headlines', 'Cashflow Chart',
   'IRR', 'Leases', 'Cashflows - Asset', 'Cashflows - Unit',
@@ -64,7 +64,7 @@ export const AssetEnquiryView: React.FC = () => {
   if (loading) return (
     <div className="flex items-center justify-center bg-gray-50">
       <div className="text-center">
-        <img src="/loading4b.gif" alt="Loading..." className="w-24 h-24 mx-auto" />
+        <img src={loadingGif} alt="Loading..." className="mx-auto" />
         <p className="mt-3 text-sm text-slate-600">Loading asset data…</p>
       </div>
     </div>
