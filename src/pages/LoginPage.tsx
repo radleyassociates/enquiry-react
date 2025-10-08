@@ -2,6 +2,7 @@ import { LogIn } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import firstLogo from '../assets/logo-1.svg';
 import { validateToken } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -38,7 +39,7 @@ export const LoginPage: React.FC = () => {
       <div className="flex items-center justify-center w-full lg:w-1/2">
         <div className="w-full max-w-md p-8 space-y-8">
           <div className="text-center lg:text-left">
-            <img src="/logo-1.svg" alt="PROMS Logo" className="h-10 mx-auto lg:mx-0" />
+            <img src={firstLogo} alt="PROMS Logo" className="h-10 mx-auto lg:mx-0" />
             <p className="mt-2 text-base text-slate-600">
               Welcome back! Please sign in to your account.
             </p>
