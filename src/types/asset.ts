@@ -14,8 +14,29 @@ export interface Asset {
   fund?: string;
 }
 
-export interface ApiResponse {
+export interface ApiResponse<T> {
   status: number;
-  result: Asset[];
+  result: T;
   validationMessages: any[];
+}
+
+interface Obligor {
+  id: number;
+  customerName: string;
+  ref: string;
+  country: string;
+}
+
+interface Building {
+  id: number;
+  buildingRef: string;
+  currentValuation: number;
+  mostRecentValuationDate: number;
+}
+
+export interface AssetResult {
+  obligorAPI: Obligor;
+  vehicleId: number;
+  buildingsAPI: Building[];
+  id: number;
 }

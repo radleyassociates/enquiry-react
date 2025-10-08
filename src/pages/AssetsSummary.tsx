@@ -1,36 +1,74 @@
-import React, { useState } from 'react';
-import { useLocation, Navigate } from 'react-router-dom';
-import { Asset } from '../types/asset';
-import { AssetGalleryItem } from '../components/AssetGalleryItem';
-import { AssetTableView } from '../components/AssetTableView';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { LayoutGrid, List, Camera, MapPin, Search, Plus } from 'lucide-react';
 
-export const AssetAnalysisPage: React.FC = () => {
-  const location = useLocation();
-  const assets = location.state?.assets as Asset[] | undefined;
+import { Asset } from '../types/asset';
+import { getRecentDeals } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import { useAssets } from "../contexts/AssetsContext";
+import { AssetTableView } from '../components/AssetTableView';
+import { AssetGalleryItem } from '../components/AssetGalleryItem';
 
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+export const AssetsSummary: React.FC = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { assets, setAssets } = useAssets();
+  const initialAssets = (location.state?.assets as Asset[]) || [];
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [displayMode, setDisplayMode] = useState<'gallery' | 'list'>('gallery');
   const [galleryImageMode, setGalleryImageMode] = useState<'street' | 'map'>('street');
 
-  if (!assets) {
-    return <Navigate to="/login" />;
-  }
-
   const handleAssetSelect = (asset: Asset) => {
-    setSelectedAsset(prev => prev?.enquiryId === asset.enquiryId ? null : asset);
+    navigate(`/asset-analysis/${asset.enquiryId}`, { state: { asset: asset, allAssets: assets } });
   };
 
   const handleImageModeToggle = () => {
     setGalleryImageMode(prevMode => prevMode === 'street' ? 'map' : 'street');
   };
 
+  useEffect(() => {
+    if (initialAssets && initialAssets.length) {
+      setAssets(initialAssets);
+      return;
+    }
+
+    const username = user?.username;
+    if (!username) return;
+
+    const load = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await getRecentDeals(username);
+        if (res && Array.isArray(res.result)) {
+          setAssets(res.result);
+        } else {
+          setAssets([]);
+          setError('No assets returned from server.');
+        }
+      } catch {
+        setError('Failed to load assets.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    load();
+    return () => { };
+  }, []);
+
   return (
     <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-8 py-2 flex items-center justify-between">
       <div className="flex flex-col w-full font-sans bg-slate-50">
         <div className="flex-shrink-0 p-4 border-b border-slate-200">
           <h2 className="text-xl font-bold text-slate-800">Assets</h2>
-          <p className="text-sm text-slate-500">{assets.length} properties found</p>
+          <p className="text-sm text-slate-500">
+            {isLoading ? 'Loading assets...' : `${assets.length} properties found`}
+            {error && <span className="text-rose-600 ml-3"> — {error}</span>}
+          </p>
           <div className="flex items-center gap-2 mt-4">
             <div className="relative flex-grow">
               <Search className="absolute w-5 h-5 top-2.5 left-3 text-slate-400" strokeWidth={2} />
@@ -38,7 +76,10 @@ export const AssetAnalysisPage: React.FC = () => {
                 className="w-full pl-10 pr-4 py-2 text-sm border rounded-md border-slate-300 bg-slate-100 cursor-not-allowed"
               />
             </div>
-            <button disabled className="p-2 text-white bg-blue-300 rounded-md cursor-not-allowed">
+            <button
+              disabled
+              className="flex items-center justify-center p-2 text-white bg-blue-400 rounded-md cursor-not-allowed opacity-60"
+            >
               <Plus className="w-5 h-5" strokeWidth={2.5} />
             </button>
           </div>
@@ -77,14 +118,17 @@ export const AssetAnalysisPage: React.FC = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {displayMode === 'gallery' ? (
+          {isLoading ? (
+            <div className="text-center">
+              <img src="/loading4b.gif" alt="Loading..." className="mt-20 mx-auto" />
+            </div>
+          ) : displayMode === 'gallery' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
               {assets.map((asset) => (
                 <AssetGalleryItem
                   key={asset.enquiryId}
                   asset={asset}
-                  isSelected={selectedAsset?.enquiryId === asset.enquiryId}
-                  onClick={() => handleAssetSelect(asset)}
+                  onClick={(asset) => handleAssetSelect(asset)}
                   imageMode={galleryImageMode}
                 />
               ))}
@@ -92,8 +136,7 @@ export const AssetAnalysisPage: React.FC = () => {
           ) : (
             <AssetTableView
               assets={assets}
-              selectedAsset={selectedAsset}
-              onAssetSelect={handleAssetSelect}
+              onAssetSelect={(asset) => handleAssetSelect(asset)}
             />
           )}
         </div>
