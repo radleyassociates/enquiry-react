@@ -2,7 +2,7 @@
   "name": "enquiry-react",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://enquiry-react.github.io/",
+  "homepage": "https://radleyassociates.github.io/enquiry-react/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
