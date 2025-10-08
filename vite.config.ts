@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-const repoName = '/enquiry-react/';
+const repoName = '/';
 
 export default defineConfig({
   plugins: [react()],
