@@ -28,12 +28,14 @@ jobs:
       - name: Install dependencies 📥
         run: npm ci
 
+      - name: Create .env file 🤫
+        run: |
+          echo "VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}" >> .env
+          echo "VITE_API_BEARER_TOKEN=${{ secrets.VITE_API_BEARER_TOKEN }}" >> .env
+          echo "VITE_GOOGLE_MAPS_API_KEY=${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}" >> .env
+
       - name: Build and Inject Secrets 🏗️
         run: npm run build
-        env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-          VITE_API_BEARER_TOKEN: ${{ secrets.VITE_API_BEARER_TOKEN }}
-          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
 
       - name: Deploy to GitHub Pages 🚀
         uses: peaceiris/actions-gh-pages@v4
