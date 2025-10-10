@@ -1,14 +1,15 @@
 import { SaveIcon, Undo2 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { formatNumber } from '../utils/number';
 import loadingGif from '../assets/loading4b.gif';
 import { Asset, AssetResult } from '../types/asset';
 import { useAssets } from '../contexts/AssetsContext';
-import { fetchAndMapAssetData } from '../services/api';
 import { InputSlider } from '../components/InputSlider';
 import { AccordionSection } from '../components/AccordionSection';
+import { fetchAndMapAssetData, updateApiEnquiry } from '../services/api';
+
 const tabs = [
   'Initial Valuation', 'Value Sensitivity', 'Headlines', 'Cashflow Chart',
   'IRR', 'Leases', 'Cashflows - Asset', 'Cashflows - Unit',
@@ -22,13 +23,16 @@ export const AssetEnquiryView: React.FC = () => {
   const [enquiry, setEnquiry] = useState<AssetResult | any | null>(null);
   const [activeTab, setActiveTab] = useState('Initial Valuation');
   const [loading, setLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [assetData, setAssetData] = useState<Asset | null>(null);
   const { assets } = useAssets();
 
+  const initialOfferBaselineRef = useRef<number | null>(null);
+
   useEffect(() => {
-    const assetData = assets?.find?.((a: any) => String(a.enquiryId) === String(enquiryId));
-    setAssetData(assetData || null);
+    const found = assets?.find?.((a: any) => String(a.enquiryId) === String(enquiryId));
+    setAssetData(found || null);
 
     const loadData = async () => {
       setLoading(true);
@@ -38,7 +42,7 @@ export const AssetEnquiryView: React.FC = () => {
         const data = await fetchAndMapAssetData(enquiryId as string);
         setEnquiry(data);
       } catch (err: any) {
-        setError(err?.message || "An unknown error occurred during data fetching.");
+        setError(err?.message || 'An unknown error occurred during data fetching.');
       } finally {
         setLoading(false);
       }
@@ -48,27 +52,104 @@ export const AssetEnquiryView: React.FC = () => {
       loadData();
     } else {
       setLoading(false);
-      setError("Enquiry ID not provided in the URL.");
+      setError('Enquiry ID not provided in the URL.');
     }
   }, [enquiryId, assets]);
+
+  useEffect(() => {
+    if (!enquiry || initialOfferBaselineRef.current !== null) return;
+    const initial =
+      (typeof enquiry?.buildings?.[0]?.currentValuation !== 'undefined'
+        ? enquiry?.buildings?.[0]?.currentValuation
+        : enquiry?.currentValuation) ?? null;
+
+    const parsed =
+      typeof initial === 'string' ? Number(initial) : (typeof initial === 'number' ? initial : null);
+
+    if (parsed !== null && !Number.isNaN(parsed)) {
+      initialOfferBaselineRef.current = parsed;
+    }
+  }, [enquiry]);
 
   const handleRerun = async () => {
     try {
       setError(null);
-      // add rerun logic here
     } catch (err: any) {
       setError(err?.message ?? 'Failed to rerun analysis.');
     }
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <img src={loadingGif} alt="Loading..." className="mx-auto" />
-        <p className="mt-3 text-sm text-slate-600">Loading asset data…</p>
+  const handleSave = async () => {
+    if (!enquiry) {
+      setError('No enquiry data to save.');
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const response = await updateApiEnquiry(enquiry);
+      if (response.status !== 200) {
+        throw new Error(response.message || `Failed to save. Server returned status ${response.status}`);
+      }
+      alert('Save successful!');
+
+    } catch (err: any) {
+      setError(err?.message ?? 'An unknown error occurred while saving.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const offerPrice: number | null = useMemo(() => {
+    const val =
+      (typeof enquiry?.buildings?.[0]?.currentValuation !== 'undefined'
+        ? enquiry?.buildings?.[0]?.currentValuation
+        : enquiry?.currentValuation) ?? null;
+
+    const parsed =
+      typeof val === 'string' ? Number(val) : (typeof val === 'number' ? val : null);
+
+    if (parsed === null || Number.isNaN(parsed)) return null;
+    return parsed;
+  }, [enquiry]);
+
+  const { minOffer, maxOffer } = useMemo(() => {
+    const baseline = initialOfferBaselineRef.current ?? offerPrice ?? 0;
+    const min = Math.max(0, Math.floor(baseline * 0.5));
+    const max = Math.max(min + 1000, Math.ceil(baseline * 1.5));
+    return { minOffer: min, maxOffer: max };
+  }, [offerPrice]);
+
+  const handleOfferChange = (next: number) => {
+    setEnquiry((prev: any) => {
+      if (!prev) return prev;
+
+      const hasBuildings = Array.isArray(prev.buildings) && prev.buildings.length > 0;
+
+      const nextBuildings = hasBuildings
+        ? [{ ...prev.buildings[0], currentValuation: next }, ...prev.buildings.slice(1)]
+        : prev.buildings;
+
+      return {
+        ...prev,
+        currentValuation: next,
+        ...(hasBuildings ? { buildings: nextBuildings } : {}),
+      };
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <img src={loadingGif} alt="Loading..." className="mx-auto" />
+          <p className="mt-3 text-sm text-slate-600">Loading asset data…</p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="bg-gray-50 font-sans text-sm">
@@ -85,16 +166,23 @@ export const AssetEnquiryView: React.FC = () => {
         </div>
 
         <div className="mt-2 sm:mt-0 sm:ml-auto flex items-center gap-2">
-          <button className="flex items-center text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded text-xs">
-            <SaveIcon className="mr-1" size={14} /> Save
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded text-xs disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            <SaveIcon className="mr-1" size={14} />
+            {isSaving ? 'Saving...' : 'Save'}
           </button>
 
-          <button onClick={() => navigate('/assets')} className="flex items-center text-xs px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">
+          <button
+            onClick={() => navigate('/assets')}
+            className="flex items-center text-xs px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
+          >
             <Undo2 className="mr-1" size={14} /> Back
           </button>
         </div>
 
-        {/* Deal ref shown on small screens below nav */}
         <div className="w-full sm:w-auto sm:ml-6 text-xs text-slate-600 mt-1 sm:mt-0">
           Deal ref: <span className="font-medium text-slate-800">{assetData?.obligorRef ?? '—'}</span>
         </div>
@@ -104,7 +192,9 @@ export const AssetEnquiryView: React.FC = () => {
         <div className="mt-3">
           <div className="flex items-center justify-between bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2 rounded">
             <div className="text-sm">{error}</div>
-            <button onClick={() => setError(null)} className="text-sm px-2 py-1 bg-rose-100 rounded">Dismiss</button>
+            <button onClick={() => setError(null)} className="text-sm px-2 py-1 bg-rose-100 rounded">
+              Dismiss
+            </button>
           </div>
         </div>
       )}
@@ -118,20 +208,33 @@ export const AssetEnquiryView: React.FC = () => {
           >
             Rerun analysis
           </button>
+
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <h3 className="font-semibold text-gray-700 mb-3">Pricing</h3>
+
             <div className="text-gray-600 mb-4">
               <div className="flex justify-between items-center mb-1">
                 <label className="text-gray-700 text-sm">Offer Price:</label>
                 <span className="text-xs font-semibold">
-                  {(() => {
-                    const val = enquiry?.buildingsAPI?.[0]?.currentValuation ?? enquiry?.currentValuation;
-                    return val ? `US$${formatNumber(Number(val))}` : '—';
-                  })()}
+                  {offerPrice !== null ? `US$${formatNumber(offerPrice)}` : '—'}
                 </span>
               </div>
+
               <div className="flex items-center space-x-2 mt-2">
-                <input type="range" min="0" max="10" defaultValue={1} className="w-full h-1 bg-blue-200 rounded-lg appearance-none cursor-pointer" />
+                <input
+                  type="range"
+                  min={minOffer}
+                  max={maxOffer}
+                  step={1000}
+                  value={offerPrice ?? minOffer}
+                  onChange={(e) => handleOfferChange(Number(e.target.value))}
+                  className="w-full h-1 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+
+              <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                <span>{`US$${formatNumber(minOffer)}`}</span>
+                <span>{`US$${formatNumber(maxOffer)}`}</span>
               </div>
             </div>
           </div>
@@ -167,13 +270,19 @@ export const AssetEnquiryView: React.FC = () => {
                   <div className="text-gray-800 font-medium">{assetData?.sector ?? '—'}</div>
 
                   <div className="text-gray-500">Market Rent</div>
-                  <div className="text-gray-800 font-medium">US${formatNumber(10273645)} <span className="text-gray-400 text-xs ml-2">({'US$27.3 PSF'})</span></div>
+                  <div className="text-gray-800 font-medium">
+                    US${formatNumber(10273645)}{' '}
+                    <span className="text-gray-400 text-xs ml-2">({'US$27.3 PSF'})</span>
+                  </div>
 
                   <div className="text-gray-500">Occupancy</div>
                   <div className="text-gray-800 font-medium">0%</div>
 
                   <div className="text-gray-500">Contracted Rent</div>
-                  <div className="text-gray-800 font-medium">US${formatNumber(8035255)} <span className="text-gray-400 text-xs ml-2">({'US$21.35 PSF'})</span></div>
+                  <div className="text-gray-800 font-medium">
+                    US${formatNumber(8035255)}{' '}
+                    <span className="text-gray-400 text-xs ml-2">({'US$21.35 PSF'})</span>
+                  </div>
 
                   <div className="text-gray-500">Cap Rate NTM</div>
                   <div className="text-gray-800 font-medium">-69,907,772.87%</div>
@@ -195,12 +304,28 @@ export const AssetEnquiryView: React.FC = () => {
                   <tbody>
                     <tr className="h-6">
                       <td className="text-gray-500">IRR:</td>
-                      <td className="text-right font-bold text-red-600 bg-yellow-50 px-2 rounded">72.31% <span className="text-xs">⬇</span></td>
+                      <td
+                        className={`text-right font-bold bg-yellow-50 px-2 rounded ${enquiry?.apiOutputs?.irrMean >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}
+                      >
+                        {Math.abs(enquiry?.apiOutputs?.irrMean ?? 0)}%
+                        <span className="text-xs ml-1">
+                          {enquiry?.apiOutputs?.irrMean >= 0 ? '⬆' : '⬇'}
+                        </span>
+                      </td>
                       <td className="text-right text-gray-800 border-l pl-2">73.12%</td>
                     </tr>
                     <tr className="h-6">
                       <td className="text-gray-500">Present Val:</td>
-                      <td className="text-right font-bold text-red-600">US$66,584,045.77 <span className="text-xs">⬇</span></td>
+                      <td
+                        className={`text-right font-bold bg-yellow-50 px-2 rounded ${enquiry?.apiOutputs?.dcfMean >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}
+                      >
+                        US${formatNumber(Math.abs(enquiry?.apiOutputs?.dcfMean ?? 0))}
+                        <span className="text-xs ml-1">
+                          {enquiry?.apiOutputs?.dcfMean >= 0 ? '⬆' : '⬇'}
+                        </span>
+                      </td>
                       <td className="text-right text-gray-800 border-l pl-2">US$137,555,166.86</td>
                     </tr>
                   </tbody>
@@ -220,7 +345,10 @@ export const AssetEnquiryView: React.FC = () => {
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`flex-shrink-0 text-xs px-4 py-2 border-r border-gray-300 last:border-r-0 transition-colors
-                        ${activeTab === tab ? 'bg-white text-blue-600 border-t-2 border-blue-600 -mb-[1px]' : 'text-gray-600 hover:bg-gray-200'}`}
+                      ${activeTab === tab
+                        ? 'bg-white text-blue-600 border-t-2 border-blue-600 -mb-[1px]'
+                        : 'text-gray-600 hover:bg-gray-200'
+                      }`}
                   >
                     {tab}
                   </button>
@@ -230,7 +358,9 @@ export const AssetEnquiryView: React.FC = () => {
           </div>
 
           <div className="bg-white border border-gray-300 h-[60vh] mt-0.5 rounded-b-lg shadow-md p-4 overflow-auto">
-            <p className="text-gray-400 italic">Content area for the selected tab is currently blank as requested (No charts yet).</p>
+            <p className="text-gray-400 italic">
+              Content area for the selected tab is currently blank as requested (No charts yet).
+            </p>
           </div>
         </main>
       </div>
