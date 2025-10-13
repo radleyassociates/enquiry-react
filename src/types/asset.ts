@@ -15,6 +15,7 @@ export interface Asset {
 }
 
 export interface ApiResponse<T> {
+  message?: string;
   status: number;
   result: T;
   validationMessages: any[];
@@ -34,9 +35,21 @@ interface Building {
   mostRecentValuationDate: number;
 }
 
+interface ApiOutputs {
+  dcfmean: number;
+  ellifetimeAverage: number;
+  expectedLoss: number;
+  id: number;
+  irrmean: number;
+  lossGivenDefault: number;
+  pdlifetimeAverage: number;
+  probabilityDefault: number;
+}
+
 export interface AssetResult {
+  apiOutputs: ApiOutputs;
   obligorAPI: Obligor;
   vehicleId: number;
-  buildingsAPI: Building[];
+  buildings: Building[];
   id: number;
 }
