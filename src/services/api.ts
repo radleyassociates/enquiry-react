@@ -76,3 +76,13 @@ export const fetchAndMapAssetData = async (enquiryId: string): Promise<AssetResu
     throw new Error("Failed to load asset data from API.");
   }
 };
+
+export const updateApiEnquiry = async (enquiryData: AssetResult): Promise<ApiResponse<any>> => {
+  try {
+    const response = await apiClient.post('/updateapienquiry', enquiryData);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating enquiry:", error);
+    throw error;
+  }
+};
