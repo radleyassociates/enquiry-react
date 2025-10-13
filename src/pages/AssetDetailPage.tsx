@@ -305,12 +305,12 @@ export const AssetEnquiryView: React.FC = () => {
                     <tr className="h-6">
                       <td className="text-gray-500">IRR:</td>
                       <td
-                        className={`text-right font-bold bg-yellow-50 px-2 rounded ${enquiry?.apiOutputs?.irrMean >= 0 ? 'text-green-600' : 'text-red-600'
+                        className={`text-right font-bold bg-yellow-50 px-2 rounded ${enquiry?.apiOutputs?.irrmean >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}
                       >
-                        {Math.abs(enquiry?.apiOutputs?.irrMean ?? 0)}%
+                        {Math.abs(enquiry?.apiOutputs?.irrmean ?? 0)}%
                         <span className="text-xs ml-1">
-                          {enquiry?.apiOutputs?.irrMean >= 0 ? '⬆' : '⬇'}
+                          {enquiry?.apiOutputs?.irrmean >= 0 ? '⬆' : '⬇'}
                         </span>
                       </td>
                       <td className="text-right text-gray-800 border-l pl-2">73.12%</td>
@@ -318,12 +318,12 @@ export const AssetEnquiryView: React.FC = () => {
                     <tr className="h-6">
                       <td className="text-gray-500">Present Val:</td>
                       <td
-                        className={`text-right font-bold bg-yellow-50 px-2 rounded ${enquiry?.apiOutputs?.dcfMean >= 0 ? 'text-green-600' : 'text-red-600'
+                        className={`text-right font-bold bg-yellow-50 px-2 rounded ${enquiry?.apiOutputs?.dcfmean >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}
                       >
-                        US${formatNumber(Math.abs(enquiry?.apiOutputs?.dcfMean ?? 0))}
+                        US${formatNumber(Math.abs(enquiry?.apiOutputs?.dcfmean ?? 0))}
                         <span className="text-xs ml-1">
-                          {enquiry?.apiOutputs?.dcfMean >= 0 ? '⬆' : '⬇'}
+                          {enquiry?.apiOutputs?.dcfmean >= 0 ? '⬆' : '⬇'}
                         </span>
                       </td>
                       <td className="text-right text-gray-800 border-l pl-2">US$137,555,166.86</td>
