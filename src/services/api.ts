@@ -86,3 +86,35 @@ export const updateApiEnquiry = async (enquiryData: AssetResult): Promise<ApiRes
     throw error;
   }
 };
+
+export const saveVersion = async (enquiryId: string, description = ''): Promise<ApiResponse<any>> => {
+  try {
+    const path = `/cloneenquiryreturnsummaries?enquiryId=${encodeURIComponent(enquiryId)}&description=${encodeURIComponent(description)}`;
+    const response = await apiClient.get<ApiResponse<any>>(path);
+    return response.data;
+  } catch (error) {
+    console.error("Error saving version:", error);
+    throw error;
+  }
+};
+
+export const getVersions = async (obligorRef: string, customer: string): Promise<ApiResponse<any[]>> => {
+  try {
+    const path = `/getsummarydraftsforobligor/${encodeURIComponent(obligorRef)}/${encodeURIComponent(customer)}`;
+    const response = await apiClient.get<ApiResponse<any[]>>(path);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching versions:", error);
+    throw error;
+  }
+};
+
+export const saveAndGrade = async (enquiryData: any): Promise<ApiResponse<any>> => {
+  try {
+    const response = await apiClient.post<ApiResponse<any>>('/saveandgrade', enquiryData);
+    return response.data;
+  } catch (error) {
+    console.error('Error running saveAndGrade:', error);
+    throw error;
+  }
+};
